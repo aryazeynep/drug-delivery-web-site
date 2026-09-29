@@ -21,7 +21,6 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useDataset, useColumnAnalysis } from '@/hooks/useDataset';
-import { LoadingCapacityMetricType } from '@/types/dataset';
 import { DistributionHistogram, SmallHistogram, DistributionPieChart, ValueDistribution } from '@/components/DistributionChart';
 
 interface FormulationData {
@@ -222,13 +221,12 @@ export default function LNPAtlas() {
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
   const [hoveredCell, setHoveredCell] = useState<CorrelationResult | null>(null);
   const [correlationType, setCorrelationType] = useState<'pearson' | 'spearman'>('spearman');
-  const [selectedLoadingMetricType, setSelectedLoadingMetricType] = useState<'WR' | 'NP' | 'CONC' | 'ALL'>('ALL');
   const [nucleicAcidViewMode, setNucleicAcidViewMode] = useState<'normalized' | 'raw'>('normalized');
   const [showDataInsights, setShowDataInsights] = useState(false);
 
   // Filter out lnp_id and reorder columns (put paper_doi at end)
   const displayColumns = useMemo(() => {
-    const filtered = columns.filter(col => col !== 'lnp_id');
+    const filtered = columns.filter(col => col !== 'lnp_id' && col !== 'loading_capacity_std');
     const paperDoiIndex = filtered.indexOf('paper_doi');
     if (paperDoiIndex > -1) {
       filtered.splice(paperDoiIndex, 1);
@@ -627,9 +625,6 @@ export default function LNPAtlas() {
                       {analysis.isMolarRatio && (
                         <Badge className="bg-amber-100 text-amber-700 border-amber-200">Molar Ratio (4 components)</Badge>
                       )}
-                      {analysis.isLoadingCapacity && (
-                        <Badge className="bg-teal-100 text-teal-700 border-teal-200">Loading Capacity (parsed)</Badge>
-                      )}
                       {analysis.isIdentifier && (
                         <Badge className="bg-gray-100 text-gray-700 border-gray-300">
                           <Hash className="w-3 h-3 mr-1" />
@@ -806,135 +801,8 @@ export default function LNPAtlas() {
                   </div>
                 )}
 
-                {/* Loading Capacity Analysis with Metric Type Breakdown */}
-                {analysis.isLoadingCapacity && analysis.loadingCapacityStats && (
-                  <div>
-                    <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4" />
-                      Loading Capacity Statistics
-                    </h4>
-                    
-                    {/* Metric Type Filter Tabs */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <Button
-                        variant={selectedLoadingMetricType === 'ALL' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedLoadingMetricType('ALL')}
-                        className="text-xs"
-                      >
-                        All (dominant)
-                      </Button>
-                      {analysis.loadingCapacityStats.wrCount > 0 && (
-                        <Button
-                          variant={selectedLoadingMetricType === 'WR' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setSelectedLoadingMetricType('WR')}
-                          className="text-xs"
-                        >
-                          Weight Ratio (WR) {analysis.loadingCapacityStats.wrCount}
-                        </Button>
-                      )}
-                      {analysis.loadingCapacityStats.npCount > 0 && (
-                        <Button
-                          variant={selectedLoadingMetricType === 'NP' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setSelectedLoadingMetricType('NP')}
-                          className="text-xs"
-                        >
-                          N/P Ratio (NP) {analysis.loadingCapacityStats.npCount}
-                        </Button>
-                      )}
-                      {analysis.loadingCapacityStats.concCount > 0 && (
-                        <Button
-                          variant={selectedLoadingMetricType === 'CONC' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setSelectedLoadingMetricType('CONC')}
-                          className="text-xs"
-                        >
-                          Concentration (CONC) {analysis.loadingCapacityStats.concCount}
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-gray-500 mb-1">Minimum</p>
-                          <p className="text-xl font-bold text-green-700">
-                            {selectedLoadingMetricType === 'ALL'
-                              ? (analysis.min !== null ? analysis.min.toFixed(2) : 'N/A')
-                              : (analysis.loadingCapacityStats[
-                                  selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                  selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                ]?.min !== undefined
-                                  ? (analysis.loadingCapacityStats[
-                                      selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                      selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                    ] as any)?.min.toFixed(2)
-                                  : 'N/A')}
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-gray-500 mb-1">Maximum</p>
-                          <p className="text-xl font-bold text-blue-700">
-                            {selectedLoadingMetricType === 'ALL'
-                              ? (analysis.max !== null ? analysis.max.toFixed(2) : 'N/A')
-                              : (analysis.loadingCapacityStats[
-                                  selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                  selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                ]?.max !== undefined
-                                  ? (analysis.loadingCapacityStats[
-                                      selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                      selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                    ] as any)?.max.toFixed(2)
-                                  : 'N/A')}
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-gray-500 mb-1">Mean</p>
-                          <p className="text-xl font-bold text-purple-700">
-                            {selectedLoadingMetricType === 'ALL'
-                              ? (analysis.mean !== null ? analysis.mean.toFixed(2) : 'N/A')
-                              : (analysis.loadingCapacityStats[
-                                  selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                  selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                ]?.mean !== undefined
-                                  ? (analysis.loadingCapacityStats[
-                                      selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                      selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                    ] as any)?.mean.toFixed(2)
-                                  : 'N/A')}
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
-                        <CardContent className="pt-4 text-center">
-                          <p className="text-xs text-gray-500 mb-1">Median</p>
-                          <p className="text-xl font-bold text-orange-700">
-                            {selectedLoadingMetricType === 'ALL'
-                              ? (analysis.median !== null ? analysis.median.toFixed(2) : 'N/A')
-                              : (analysis.loadingCapacityStats[
-                                  selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                  selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                ]?.median !== undefined
-                                  ? (analysis.loadingCapacityStats[
-                                      selectedLoadingMetricType === 'WR' ? 'wrStats' :
-                                      selectedLoadingMetricType === 'NP' ? 'npStats' : 'concStats'
-                                    ] as any)?.median.toFixed(2)
-                                  : 'N/A')}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                )}
-
                 {/* Numerical Analysis */}
-                {analysis.isNumerical && !analysis.isMolarRatio && !analysis.isLoadingCapacity && (
+                {analysis.isNumerical && !analysis.isMolarRatio && (
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <TrendingUp className="w-4 h-4" />
@@ -982,27 +850,11 @@ export default function LNPAtlas() {
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <BarChart3 className="w-4 h-4" />
-                      {analysis.isLoadingCapacity ? (
-                        selectedLoadingMetricType === 'ALL'
-                          ? `Numeric Value Distribution (all types)`
-                          : `${selectedLoadingMetricType} Distribution`
-                      ) : 'Distribution Histogram'}
+                      Distribution Histogram
                     </h4>
                     <Card className="bg-white border-gray-200">
                       <CardContent className="pt-4">
-                        <DistributionHistogram
-                          data={
-                            analysis.isLoadingCapacity
-                              ? (selectedLoadingMetricType === 'ALL'
-                                  ? analysis.histogramData
-                                  : (selectedLoadingMetricType === 'WR'
-                                      ? analysis.loadingCapacityStats?.wrHistogram
-                                      : selectedLoadingMetricType === 'NP'
-                                        ? analysis.loadingCapacityStats?.npHistogram
-                                        : analysis.loadingCapacityStats?.concHistogram) || [])
-                              : analysis.histogramData
-                          }
-                        />
+                        <DistributionHistogram data={analysis.histogramData} />
                       </CardContent>
                     </Card>
                   </div>

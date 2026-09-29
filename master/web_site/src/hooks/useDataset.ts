@@ -35,7 +35,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Papa from 'papaparse';
-import type { LNPData, DatasetState, Statistics, HistogramBin, ColumnAnalysis, TextStats, PieChartDataPoint, LoadingCapacityGroupedStats } from '@/types/dataset';
+import type { LNPData, DatasetState, Statistics, HistogramBin, ColumnAnalysis, TextStats, PieChartDataPoint } from '@/types/dataset';
 
 const MORTAL_RATIO_NAMES = ['Ionizable Lipid', 'PEG Lipid', 'Sterol Lipid', 'Helper Lipid'];
 
