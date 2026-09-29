@@ -60,7 +60,6 @@ export interface ColumnAnalysis {
   nullRecords: number;
   isNumerical: boolean;
   isMolarRatio: boolean;
-  isLoadingCapacity: boolean;
   isIdentifier: boolean;
   isNucleicAcidSequence: boolean;
   min: number | null;
@@ -72,8 +71,6 @@ export interface ColumnAnalysis {
   histogramData: HistogramBin[];
   textStats?: TextStats;
   pieChartData?: PieChartDataPoint[];
-  // Grouped stats for loading capacity by metric type
-  loadingCapacityStats?: LoadingCapacityGroupedStats;
   // Nucleic acid sequence normalization
   rawDistribution?: TextStats;
   normalizedDistribution?: TextStats;
@@ -96,22 +93,6 @@ export interface MolarRatioComponents {
   peg: number[];
   sterol: number[];
   helper: number[];
-}
-
-// Loading capacity metric types
-export type LoadingCapacityMetricType = 'CONC' | 'NP' | 'WR' | 'OTHER' | 'MIXED' | 'UNKNOWN';
-
-// Grouped statistics for loading capacity by metric type
-export interface LoadingCapacityGroupedStats {
-  wrStats: Statistics | null;
-  npStats: Statistics | null;
-  concStats: Statistics | null;
-  wrHistogram: HistogramBin[];
-  npHistogram: HistogramBin[];
-  concHistogram: HistogramBin[];
-  wrCount: number;
-  npCount: number;
-  concCount: number;
 }
 
 // API response wrapper (for future database integration)

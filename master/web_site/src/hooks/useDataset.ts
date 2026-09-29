@@ -39,144 +39,6 @@ import type { LNPData, DatasetState, Statistics, HistogramBin, ColumnAnalysis, T
 
 const MORTAL_RATIO_NAMES = ['Ionizable Lipid', 'PEG Lipid', 'Sterol Lipid', 'Helper Lipid'];
 
-// Loading capacity metric types
-export type LoadingCapacityMetricType = 'CONC' | 'NP' | 'WR' | 'OTHER' | 'MIXED' | 'UNKNOWN';
-
-export interface ParsedLoadingCapacity {
-  metricType: LoadingCapacityMetricType;
-  numericValue: number | null;
-  rawValue: string;
-}
-
-// Regex patterns for loading capacity parsing
-const LOADING_PATTERNS = {
-  // CONC:0.1(??g/??L)[mRNA], CONC:0.27(mg/mL)[pDNA]
-  conc: /^CONC:([\d.]+)/i,
-  // NP:6(molar), NP:fixed(molar)
-  np: /^NP:([\d.]+|fixed)/i,
-  // WR:10(wt/wt)[lipid:mRNA]
-  wr: /^WR:([\d.]+)/i,
-  // OTHER:text
-  other: /^OTHER:/i,
-};
-
-/**
- * Parse loading capacity string to extract metric type and numeric value
- * Only extracts numeric values from clearly structured patterns (CONC:, NP:, WR:)
- * Returns null for OTHER, MIXED, or UNKNOWN to avoid false positives
- */
-function parseLoadingCapacity(value: string): ParsedLoadingCapacity {
-  if (!value || typeof value !== 'string' || !value.trim()) {
-    return { metricType: 'UNKNOWN', numericValue: null, rawValue: value || '' };
-  }
-
-  const cleaned = value.trim();
-  
-  // Try to extract CONC value (e.g., CONC:0.1(??g/??L)[mRNA])
-  const concMatch = cleaned.match(LOADING_PATTERNS.conc);
-  if (concMatch) {
-    const numValue = parseFloat(concMatch[1]);
-    return {
-      metricType: 'CONC',
-      numericValue: isNaN(numValue) ? null : numValue,
-      rawValue: cleaned,
-    };
-  }
-  
-  // Try to extract NP value (e.g., NP:6(molar), NP:fixed(molar))
-  const npMatch = cleaned.match(LOADING_PATTERNS.np);
-  if (npMatch) {
-    const numStr = npMatch[1];
-    const numValue = numStr === 'fixed' ? null : parseFloat(numStr);
-    return {
-      metricType: 'NP',
-      numericValue: isNaN(numValue as number) ? null : numValue,
-      rawValue: cleaned,
-    };
-  }
-  
-  // Try to extract WR value (e.g., WR:10(wt/wt)[lipid:mRNA])
-  const wrMatch = cleaned.match(LOADING_PATTERNS.wr);
-  if (wrMatch) {
-    const numValue = parseFloat(wrMatch[1]);
-    return {
-      metricType: 'WR',
-      numericValue: isNaN(numValue) ? null : numValue,
-      rawValue: cleaned,
-    };
-  }
-  
-  // Check if OTHER type - DO NOT extract arbitrary numbers to avoid false positives
-  if (LOADING_PATTERNS.other.test(cleaned)) {
-    return {
-      metricType: 'OTHER',
-      numericValue: null,
-      rawValue: cleaned,
-    };
-  }
-  
-  // Check for mixed patterns (contains multiple metric types)
-  const hasMultiple = (
-    (cleaned.match(/CONC:/i) ? 1 : 0) +
-    (cleaned.match(/NP:/i) ? 1 : 0) +
-    (cleaned.match(/WR:/i) ? 1 : 0)
-  ) > 1;
-  
-  if (hasMultiple) {
-    return {
-      metricType: 'MIXED',
-      numericValue: null,
-      rawValue: cleaned,
-    };
-  }
-  
-  // Fallback: unknown format - no numeric extraction to avoid false positives
-  return {
-    metricType: 'UNKNOWN',
-    numericValue: null,
-    rawValue: cleaned,
-  };
-}
-
-/**
- * Parse all loading capacity values and return grouped statistics
- */
-function parseLoadingCapacities(values: string[]): {
-  parsed: ParsedLoadingCapacity[];
-  metricTypeCounts: Record<LoadingCapacityMetricType, number>;
-  wrValues: number[];
-  npValues: number[];
-  concValues: number[];
-} {
-  const parsed = values.map(parseLoadingCapacity);
-  
-  const metricTypeCounts: Record<LoadingCapacityMetricType, number> = {
-    CONC: 0,
-    NP: 0,
-    WR: 0,
-    OTHER: 0,
-    MIXED: 0,
-    UNKNOWN: 0,
-  };
-  
-  const wrValues: number[] = [];
-  const npValues: number[] = [];
-  const concValues: number[] = [];
-  
-  parsed.forEach((p) => {
-    metricTypeCounts[p.metricType]++;
-    if (p.metricType === 'WR' && p.numericValue !== null) {
-      wrValues.push(p.numericValue);
-    } else if (p.metricType === 'NP' && p.numericValue !== null) {
-      npValues.push(p.numericValue);
-    } else if (p.metricType === 'CONC' && p.numericValue !== null) {
-      concValues.push(p.numericValue);
-    }
-  });
-  
-  return { parsed, metricTypeCounts, wrValues, npValues, concValues };
-}
-
 /**
  * Main hook for fetching and managing dataset
  * 
@@ -615,7 +477,6 @@ export function useColumnAnalysis(data: LNPData[], columns: string[]) {
     const nullValues = allValues.filter((v) => !v || v.trim() === '');
 
     const isMolarRatio = selectedColumn === 'lipid_molar_ratio';
-    const isLoadingCapacity = selectedColumn === 'loading_capacity_std';
     const isNucleicAcidSequence = selectedColumn === 'nucleic_acid_sequence';
     const isNumerical = isColumnNumerical(selectedColumn);
 
@@ -623,9 +484,8 @@ export function useColumnAnalysis(data: LNPData[], columns: string[]) {
       totalRecords: data.length,
       validRecords: validValues.length,
       nullRecords: nullValues.length,
-      isNumerical: isNumerical || isMolarRatio || isLoadingCapacity,
+      isNumerical: isNumerical || isMolarRatio,
       isMolarRatio,
-      isLoadingCapacity,
       isNucleicAcidSequence,
       isIdentifier: isIdentifierColumn(selectedColumn),
       min: null,
@@ -660,91 +520,6 @@ export function useColumnAnalysis(data: LNPData[], columns: string[]) {
         analysis.median = stats.median;
         analysis.histogramData = createHistogramData(allParsedNumbers);
       }
-    } else if (isLoadingCapacity) {
-      // Special handling for loading capacity - parse complex strings and group by metric type
-      const { parsed, metricTypeCounts, wrValues, npValues, concValues } = parseLoadingCapacities(validValues);
-      
-      // Calculate grouped statistics by metric type
-      const groupedStats: LoadingCapacityGroupedStats = {
-        wrStats: wrValues.length > 0 ? calculateStatistics(wrValues) : null,
-        npStats: npValues.length > 0 ? calculateStatistics(npValues) : null,
-        concStats: concValues.length > 0 ? calculateStatistics(concValues) : null,
-        wrHistogram: wrValues.length > 0 ? createHistogramData(wrValues) : [],
-        npHistogram: npValues.length > 0 ? createHistogramData(npValues) : [],
-        concHistogram: concValues.length > 0 ? createHistogramData(concValues) : [],
-        wrCount: wrValues.length,
-        npCount: npValues.length,
-        concCount: concValues.length,
-      };
-      
-      // Determine dominant type for default display
-      const dominantType = Object.entries(metricTypeCounts)
-        .sort((a, b) => b[1] - a[1])[0]?.[0] as LoadingCapacityMetricType;
-      
-      // Set global stats from dominant type
-      if (dominantType === 'WR' && groupedStats.wrStats) {
-        analysis.min = groupedStats.wrStats.min;
-        analysis.max = groupedStats.wrStats.max;
-        analysis.mean = groupedStats.wrStats.mean;
-        analysis.median = groupedStats.wrStats.median;
-        analysis.histogramData = groupedStats.wrHistogram;
-      } else if (dominantType === 'NP' && groupedStats.npStats) {
-        analysis.min = groupedStats.npStats.min;
-        analysis.max = groupedStats.npStats.max;
-        analysis.mean = groupedStats.npStats.mean;
-        analysis.median = groupedStats.npStats.median;
-        analysis.histogramData = groupedStats.npHistogram;
-      } else if (dominantType === 'CONC' && groupedStats.concStats) {
-        analysis.min = groupedStats.concStats.min;
-        analysis.max = groupedStats.concStats.max;
-        analysis.mean = groupedStats.concStats.mean;
-        analysis.median = groupedStats.concStats.median;
-        analysis.histogramData = groupedStats.concHistogram;
-      }
-      
-      // Store grouped stats for metric-type-specific display
-      analysis.loadingCapacityStats = groupedStats;
-      
-      // Create pie chart data for metric type distribution
-      const total = validValues.length;
-      const pieData: PieChartDataPoint[] = [];
-      
-      const metricTypeLabels: Record<LoadingCapacityMetricType, string> = {
-        CONC: 'Concentration (CONC)',
-        NP: 'N/P Ratio (NP)',
-        WR: 'Weight Ratio (WR)',
-        OTHER: 'Other',
-        MIXED: 'Mixed',
-        UNKNOWN: 'Unknown',
-      };
-      
-      (Object.keys(metricTypeCounts) as LoadingCapacityMetricType[]).forEach((type) => {
-        const count = metricTypeCounts[type];
-        if (count > 0) {
-          pieData.push({
-            name: metricTypeLabels[type],
-            value: count,
-            percentage: ((count / total) * 100).toFixed(1) + '%',
-          });
-        }
-      });
-      
-      // Sort by value descending
-      pieData.sort((a, b) => b.value - a.value);
-      
-      analysis.pieChartData = pieData;
-      
-      // Create text stats for metric types
-      analysis.textStats = {
-        uniqueLabels: Object.values(metricTypeCounts).filter((v) => v > 0).length,
-        labelCounts: (Object.keys(metricTypeCounts) as LoadingCapacityMetricType[])
-          .filter((type) => metricTypeCounts[type] > 0)
-          .map((type) => ({
-            label: metricTypeLabels[type],
-            count: metricTypeCounts[type],
-          }))
-          .sort((a, b) => b.count - a.count),
-      };
     } else if (isNumerical) {
       const isPercentageColumn = selectedColumn === 'encapsulation_efficiency_percent_std';
       
@@ -873,7 +648,6 @@ export function useColumnAnalysis(data: LNPData[], columns: string[]) {
 
   return {
     parseMolarRatios,
-    parseLoadingCapacity,
     parseNumericValue,
     parsePercentageValue,
     normalizeNucleicAcid,
