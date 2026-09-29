@@ -34,9 +34,10 @@ export function Sidebar({ className }: SidebarProps) {
             priority
           />
         </div>
-        <p className="text-base font-bold text-black mt-1">
-          LNP Data Portal
-        </p>
+        <h1 className="text-2xl font-bold text-center bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 bg-clip-text text-transparent tracking-wide drop-shadow-sm leading-tight">
+          Drug Discovery<br />Data Atlas
+        </h1>
+        <div className="w-16 h-0.5 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 rounded-full mt-1"></div>
       </div>
 
       {/* Navigation */}
@@ -68,7 +69,7 @@ export function Sidebar({ className }: SidebarProps) {
                 className="w-full justify-start gap-3 h-11 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 font-medium"
               >
                 <Table2 className="w-5 h-5" />
-                LNP Atlas
+                LNP Data Portal
               </Button>
             </Link>
           </nav>

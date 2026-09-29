@@ -474,7 +474,7 @@ export default function LNPAtlas() {
               </Link>
               <Database className="w-10 h-10 text-blue-600" />
               <div>
-                <CardTitle className="text-3xl font-bold text-gray-900">LNP Atlas</CardTitle>
+                <CardTitle className="text-3xl font-bold text-gray-900">LNP Data Portal</CardTitle>
                 <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 mt-1">
                   Active Dataset
                 </Badge>
@@ -487,17 +487,6 @@ export default function LNPAtlas() {
               <span className="font-medium text-gray-700">
                 A Comprehensive Dataset of Lipid Nanoparticle Compositions
               </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ExternalLink className="w-4 h-4" />
-              <a
-                href="https://doi.org/10.1038/s41597-025-06456-w"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                https://doi.org/10.1038/s41597-025-06456-w
-              </a>
             </div>
           </CardDescription>
         </CardHeader>

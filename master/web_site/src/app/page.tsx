@@ -25,10 +25,7 @@ export default function Home() {
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <Database className="w-8 h-8 text-blue-600" />
-                <CardTitle className="text-xl">LNP Atlas</CardTitle>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 ml-auto">
-                  Dataset
-                </Badge>
+                <CardTitle className="text-xl whitespace-nowrap">LNP Data</CardTitle>
               </div>
               <CardDescription>
                 Comprehensive dataset of lipid nanoparticle compositions with physicochemical properties
@@ -43,29 +40,20 @@ export default function Home() {
         </Link>
 
         {/* Paper Reference Card */}
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-100 border-purple-200">
+        <Card className="h-full bg-gradient-to-br from-purple-50 to-pink-100 border-purple-200">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
               <BookOpen className="w-8 h-8 text-purple-600" />
               <CardTitle className="text-xl">Reference Paper</CardTitle>
             </div>
             <CardDescription>
-              Primary source for the LNP Atlas dataset
+              Curated from 63 peer-reviewed publications
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm font-medium text-gray-800">
-              A Comprehensive Dataset of Lipid Nanoparticle Compositions
+          <CardContent>
+            <p className="text-sm text-gray-600">
+              Covering LNP research from 2005-2025, spanning mRNA therapeutics, gene delivery, and vaccine applications.
             </p>
-            <a
-              href="https://doi.org/10.1038/s41597-025-06456-w"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View on DOI.org
-            </a>
           </CardContent>
         </Card>
 
@@ -82,16 +70,12 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Total Entries:</span>
-              <span className="font-medium text-gray-800">1,284+ LNP compositions</span>
+              <span className="text-gray-600">Formulations:</span>
+              <span className="font-medium text-gray-800">1,092</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Columns:</span>
-              <span className="font-medium text-gray-800">28 attributes</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Publications:</span>
-              <span className="font-medium text-gray-800">89 studies</span>
+              <span className="text-gray-600">Attributes:</span>
+              <span className="font-medium text-gray-800">28</span>
             </div>
           </CardContent>
         </Card>
@@ -102,37 +86,34 @@ export default function Home() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="w-5 h-5 text-blue-600" />
-            About LNP Atlas
+            LNP Data Portal
           </CardTitle>
           <CardDescription>
-            A comprehensive resource for lipid nanoparticle research
+            A standardized platform for lipid nanoparticle formulation intelligence
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-gray-700 leading-relaxed">
-            The LNP Atlas is a curated database containing detailed compositional information, 
-            physicochemical properties, and biological performance metrics for lipid nanoparticle 
-            formulations used in drug delivery and gene therapy applications.
+            Our LNP Data Portal is a curated open-access database standardizing four-component lipid compositions, curated physicochemical parameters, and nucleic acid delivery profiles across diverse gene therapy vectors.
           </p>
           <div className="grid grid-cols-2 gap-4 pt-4">
             <div className="space-y-2">
               <h4 className="font-semibold text-gray-800">Data Categories</h4>
               <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                <li>Ionizable lipid compositions</li>
-                <li>Particle size distributions</li>
-                <li>Encapsulation efficiency data</li>
-                <li>In vivo transfection results</li>
-                <li>SMILES molecular structures</li>
+                <li>Four-component lipid molar ratios (Ionizable, PEG, Sterol, Helper)</li>
+                <li>Standardized hydrodynamic size, PDI, and surface zeta potential distributions</li>
+                <li>Multi-metric loading capacity (N/P, weight ratio, concentration)</li>
+                <li>Calibrated encapsulation efficiency metrics</li>
+                <li>Canonical nucleic acid targets (mRNA, siRNA, pDNA, Cas9) and SMILES representations</li>
               </ul>
             </div>
             <div className="space-y-2">
               <h4 className="font-semibold text-gray-800">Research Applications</h4>
               <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                <li>mRNA vaccine development</li>
-                <li>Gene therapy delivery</li>
-                <li>Drug formulation optimization</li>
-                <li>Structure-activity relationships</li>
-                <li>Comparative analysis</li>
+                <li>Formulatory parameter optimization and component trade-off analysis</li>
+                <li>Structure-property correlation mapping (colloidal stability, size, and PDI)</li>
+                <li>Delivery carrier benchmarks across mRNA and gene editing modalities</li>
+                <li>Machine learning-ready feature curation for LNP design workflows</li>
               </ul>
             </div>
           </div>
